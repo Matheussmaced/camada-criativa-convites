@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Camada Criativa Convites
 
-## Getting Started
+Loja de convites digitais (Next.js 16 + Supabase) com painel administrativo.
 
-First, run the development server:
+## Rodando
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Crie um `.env.local` (não vai para o git):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+# só para os scripts de banco (nunca é enviado ao navegador)
+SUPABASE_DB_URL=postgresql://postgres:<senha>@db.<projeto>.supabase.co:5432/postgres
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Para publicar (ex.: Vercel), só as duas variáveis `NEXT_PUBLIC_*` são necessárias.
 
-## Learn More
+## Painel
 
-To learn more about Next.js, take a look at the following resources:
+- Endereço: `/admin` (não aparece em nenhum link do site e não é indexado).
+- Pedidos: lista, busca, filtro por status, detalhes, anotações internas e botão para o WhatsApp do cliente.
+- Produtos: criar, editar, ocultar, excluir, enviar imagens reais e ajustar ilustração e cores com prévia ao vivo.
+- Preços: formatos (vídeo, imagem, interativo), preço promocional e complementos.
+- Configurações: WhatsApp que recebe os pedidos, Instagram, e-mail, horário, prazo de entrega e troca de senha.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Ao salvar no painel, o site é atualizado na hora (cache por tag `catalog`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Banco de dados
 
-## Deploy on Vercel
+As tabelas, regras de acesso (RLS) e dados iniciais ficam em `supabase/migrations/`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run db:migrate                              # aplica as migrações (podem rodar de novo sem duplicar dados)
+npm run admin:create -- email@exemplo.com Senha # cria/troca o administrador (só existe um)
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Segurança:
+
+- Visitantes só leem produtos ativos, formatos, complementos e configurações.
+- Pedidos são criados pela função `create_order`, que calcula o total no banco; ninguém de fora consegue ler, alterar ou inserir pedidos diretamente.
+- Só o usuário na tabela `admins` pode alterar dados e imagens.
